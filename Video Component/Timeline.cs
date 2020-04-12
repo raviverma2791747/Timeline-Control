@@ -40,11 +40,16 @@ namespace Video_Component
             public static int FinalTrackObject;
             public static bool MoveNS;
             public static bool MoveWE;
+            public static bool SizeN;
+            public static bool SizeS;
             public static bool SizeW;
             public static bool SizeE;
             public static bool SizeNS;
+            public static bool Track;
             public static int ChangeNS;
             public static int ChangeWE;
+            public static TrackObject TO;
+            public static Track T;
 
             static Drag()
             {
@@ -59,6 +64,7 @@ namespace Video_Component
                 SizeW = false;
                 SizeE = false;
                 SizeNS = false;
+                Track = false;
                 ChangeNS = 0;
                 ChangeWE = 0;
             }
@@ -76,6 +82,7 @@ namespace Video_Component
                 SizeW = false;
                 SizeE = false;
                 SizeNS = false;
+                Track = false;
                 ChangeNS = 0;
                 ChangeWE = 0;
             }
@@ -260,7 +267,8 @@ namespace Video_Component
                 this.BorderColor = new SolidBrush(Color.Black);
                 this.Base = new Rectangle(this.Location.X, this.Location.Y, this.Width, TrackObject.Height);
                 this.Border = new Rectangle(this.Location.X + 1, this.Location.Y + 1, this.Width - 1, TrackObject.Height - 1);
-                this.Border = new Rectangle();
+                this.Type = "Default";
+
             }
 
             public TrackObject(Point Location)
@@ -272,7 +280,7 @@ namespace Video_Component
                 this.BorderColor = new SolidBrush(Color.Black);
                 this.Base = new Rectangle(this.Location.X, this.Location.Y, this.Width, TrackObject.Height);
                 this.Border = new Rectangle(this.Location.X + 1, this.Location.Y + 1, this.Width - 1, TrackObject.Height - 1);
-                //this.Type = 
+                this.Type = "Default";
             }
 
             public bool Contains(Point P)
@@ -316,6 +324,14 @@ namespace Video_Component
             public void MoveWE(int MoveWE)
             {
                 this.Location.X = this.Location.X + MoveWE;
+                if(this.Location.X<80)
+                {
+                    this.Location.X = 80;
+                }
+                /*else if(this.Location.X > this.Width - 80)
+                {
+                    this.Location.X = this.Width - 80;
+                }*/
                 this.Update();
             }
 
@@ -341,6 +357,7 @@ namespace Video_Component
 
         class Track
         {
+            public int Number;
             public static Point TracksLocation;
             public Point Location;
             public static Size Size;
@@ -356,7 +373,7 @@ namespace Video_Component
 
             }
 
-            public Track(Point Location)
+            public Track(Point Location,int Number)
             {
                 this.Location = Location;
                 //this.Location.Y = this.Location.Y + 1;
@@ -366,10 +383,16 @@ namespace Video_Component
                 this.BaseColor = new SolidBrush(Color.Gray);
                 this.InfoColor = new SolidBrush(Color.White);
                 this.TrackObjects = new List<TrackObject>();
+                this.Number = Number;
             }
 
             public void Update()
             {
+                this.Location.Y = TracksLocation.Y + (Number-1) * Track.Size.Height;
+                this.InfoBase.Location = this.Location;
+                this.Base.Height = Track.Size.Height;
+                this.Base.Location = new Point(80,this.Location.Y);
+                this.InfoBase.Height = Track.Size.Height;
                 for (int i = 0; i < TrackObjects.Count; i++)
                 {
                     TrackObjects[i].Update();
@@ -384,6 +407,14 @@ namespace Video_Component
                     TrackObjects.Add(T);
                 }
             }
+            public void AddTrackObject(TrackObject TO)
+            {
+                if (TrackObjects.Count == 0)
+                {
+                    TO.Location = new Point(TO.Location.X, this.Location.Y);
+                    TrackObjects.Add(TO);
+                }
+            }
 
             public bool Contains(Point P)
             {
@@ -393,8 +424,27 @@ namespace Video_Component
                     return false;
             }
 
+            public bool ContainsBT(Point P)
+            {               
+                Rectangle Top = new Rectangle(this.Location.X + 80, this.Location.Y, Track.Size.Width,4);
+                if (Top.Contains(P))
+                    return true;
+                else
+                    return false;
+            }
+
+            public bool ContainsBD(Point P)
+            {             
+                Rectangle Down = new Rectangle(this.Location.X + 80, this.Location.Y + Size.Height - 4 , Track.Size.Width, 4);
+                if (Down.Contains(P))
+                    return true;
+                else
+                    return false;
+            }
+
             public void OnPaint(PaintEventArgs pe)
             {
+                this.Update();
                 pe.Graphics.FillRectangle(this.InfoColor, this.InfoBase);
                 //pe.Graphics.DrawString(this.Type,new Font(FontFamily.GenericSansSerif), new SolidBrush(Color.Black),);
                 pe.Graphics.FillRectangle(this.BaseColor, this.Base);
@@ -484,12 +534,13 @@ namespace Video_Component
             AddTrack();
             AddTrack();
             Tracks[0].AddTrackObject();
-            Tracks[1].AddTrackObject();
-            Tracks[2].AddTrackObject();
+            //Tracks[1].AddTrackObject();
+            //Tracks[2].AddTrackObject();
             this.MouseClick += RightClickTrackEvent;
             this.MouseDown += TrackMouseDownEvent;
             this.MouseMove += TrackMouseMoveEvent;
             this.MouseUp += TrackMouseUpEvent;
+            this.MouseHover += TrackMouseHoverEvent;
             RightClickMenu = new ContextMenuStrip();
             RightClickMenu.Items.Add("Add Track");
             RightClickMenu.Items.Add("Add TrackObject");
@@ -507,9 +558,10 @@ namespace Video_Component
 
         public void AddTrack()
         {
-            Track T = new Track(new Point(0, Tracks.Count * Track.Size.Height + Track.TracksLocation.Y));
+            Track T = new Track(new Point(0, Tracks.Count * Track.Size.Height + Track.TracksLocation.Y),Tracks.Count + 1);
             Tracks.Add(T);
         }
+
 
         //Events
 
@@ -535,6 +587,12 @@ namespace Video_Component
             }
         }
 
+        public void TrackMouseHoverEvent(object sender, EventArgs e)
+        {
+            Point P = Cursor.Position;
+            
+        }
+
         public void TrackMouseDownEvent(object sender, MouseEventArgs e)
         {
             Point P = e.Location;
@@ -552,6 +610,7 @@ namespace Video_Component
                                 Drag.InitialTrackObject = j;
                                 Drag.InitialLocation = P;
                                 Drag.SizeW = true;
+                                break;
                             }
                             else if (Tracks[i].TrackObjects[j].ContainsBR(P))
                             {
@@ -560,6 +619,7 @@ namespace Video_Component
                                 Drag.InitialTrackObject = j;
                                 Drag.InitialLocation = P;
                                 Drag.SizeE = true;
+                                break;
                             }
                             else if (Tracks[i].TrackObjects[j].Contains(P))
                             {
@@ -568,7 +628,34 @@ namespace Video_Component
                                 Drag.InitialTrackObject = j;
                                 Drag.InitialLocation = P;
                                 Drag.MoveWE = true;
+                                Drag.MoveNS = true;
+                                break;
                             }
+                           
+                            /*else if(Tracks[i].Contains(P))
+                            {
+                                Cursor.Current = Cursors.SizeAll;
+                                Drag.InitialTrack = i;
+                                Drag.MoveNS = true;
+                                Drag.Track = true;
+                                break;
+                            }
+                            */
+                        }
+                        if (Tracks[i].ContainsBT(P))
+                        {
+                            Cursor.Current = Cursors.SizeNS;
+                            Drag.InitialLocation = P;
+                            Drag.SizeN = true;
+                            Drag.Track = true;
+                            break;
+                        }
+                        else if (Tracks[i].ContainsBD(P))
+                        {
+                            Cursor.Current = Cursors.SizeNS;
+                            Drag.InitialLocation = P;
+                            Drag.SizeS = true;
+                            Drag.Track = true;
                         }
                     }
                     break;
@@ -580,7 +667,37 @@ namespace Video_Component
 
         public void TrackMouseMoveEvent(object sender, MouseEventArgs e)
         {
+            Point P = e.Location;
+           /* for (int i = 0; i < Tracks.Count; i++)
+            {
+                for (int j = 0; j < Tracks[i].TrackObjects.Count; j++)
+                {
+                    if(Tracks[i].TrackObjects[j].ContainsBL(P) || Tracks[i].TrackObjects[j].ContainsBR(P))
+                    {
+                        Cursor.Current = Cursors.SizeWE;
+                    }
+                    else if (Tracks[i].TrackObjects[j].Contains(P))
+                    {
+                        Cursor.Current = Cursors.SizeAll;
+                    }
+                    else if (Tracks[i].ContainsBTD(P))
+                    {
+                        Cursor.Current = Cursors.SizeNS;
+                    }
+                    else if (Tracks[i].Contains(P))
+                    {
+                        Cursor.Current = Cursors.SizeAll;
+                    }
+                }              
+            }
+            */
+            if (e.Button == MouseButtons.Left)
+            {
+                if (Drag.SizeE == false && Drag.SizeW == false)
+                {
 
+                }
+            }
         }
 
         public void TrackMouseUpEvent(object sender, MouseEventArgs e)
@@ -589,26 +706,64 @@ namespace Video_Component
             switch (e.Button)
             {
                 case MouseButtons.Left:
-                    if (Drag.SizeW == true)
+                    if (Drag.SizeW == true && Drag.Track == false)
                     {
                         Cursor.Current = Cursors.SizeWE;
                         Drag.FinalLocation = P;
                         Drag.Change();
                         Tracks[Drag.InitialTrack].TrackObjects[Drag.InitialTrackObject].SizeBL(Drag.ChangeWE);
                     }
-                    else if (Drag.SizeE == true)
+                    else if (Drag.SizeE == true && Drag.Track == false)
                     {
                         Cursor.Current = Cursors.SizeWE;
                         Drag.FinalLocation = P;
                         Drag.Change();
                         Tracks[Drag.InitialTrack].TrackObjects[Drag.InitialTrackObject].SizeBR(Drag.ChangeWE);
                     }
-                    else if (Drag.MoveWE == true)
+                    else if (Drag.MoveWE == true && Drag.MoveNS == true && Drag.Track == false)
                     {
-                        Cursor.Current = Cursors.SizeWE;
+                        Cursor.Current = Cursors.SizeAll;
+                        Drag.FinalLocation = P;
+                        if (Tracks[Drag.InitialTrack].Contains(P))
+                        {
+                            Drag.MoveNS = false;
+                        }
+                        else
+                        {
+                            Drag.MoveWE = false;
+                        }
+                        if (Drag.MoveWE == true)
+                        {
+                            Drag.Change();
+                            Tracks[Drag.InitialTrack].TrackObjects[Drag.InitialTrackObject].MoveWE(Drag.ChangeWE);
+                        }
+                        else if(Drag.MoveNS == true && Drag.Track == true)
+                        {
+                            for (int i = 0; i < Tracks.Count; i++)
+                            {
+                                if (Tracks[i].Contains(P))
+                                {
+                                    Drag.FinalTrack = i;
+                                }
+                            }
+                            Drag.TO = Tracks[Drag.InitialTrack].TrackObjects[Drag.InitialTrackObject];
+                            Tracks[Drag.InitialTrack].TrackObjects.RemoveAt(Drag.InitialTrackObject);
+                            Tracks[Drag.FinalTrack].AddTrackObject(Drag.TO);
+                        }
+                    }
+                    else if (Drag.SizeN == true && Drag.Track == true)
+                    {
+                        Cursor.Current = Cursors.SizeNS;
                         Drag.FinalLocation = P;
                         Drag.Change();
-                        Tracks[Drag.InitialTrack].TrackObjects[Drag.InitialTrackObject].MoveWE(Drag.ChangeWE);
+                        Track.Size.Height = Track.Size.Height + Drag.ChangeNS*(-1);
+                    }
+                    else if(Drag.SizeS == true && Drag.Track == true)
+                    {
+                        Cursor.Current = Cursors.SizeNS;
+                        Drag.FinalLocation = P;
+                        Drag.Change();
+                        Track.Size.Height = Track.Size.Height + Drag.ChangeNS;
                     }
                     Refresh();
                     Drag.Refresh();
