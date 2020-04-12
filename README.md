@@ -9,7 +9,7 @@ Timeline</br>
 1.Resize Timeline : Not Implemented </br>
 
 Seek</br>
-1.Move Seek : Not Implemented Moving West to East and Vice Versa </br>
+1.Move Seek :  Implemented Moving West to East and Vice Versa </br>
 
 Track</br>
 1.Add Tracks : Implemented</br>
