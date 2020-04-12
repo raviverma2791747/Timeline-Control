@@ -13,8 +13,11 @@ Seek</br>
 
 Track</br>
 1.Add Tracks : Implemented</br>
+Using Add Track button in BottomBar</br>
+
 2.Resize Tracks : Implemented </br>
-but Resizing North to South and Vice Versa permitted</br>
+but Resizing North to South and Vice Versa permitted using mouse left click and move</br>
+
 
 TrackObject</br>
 1.Add TrackObject : Not Implemented</br>
