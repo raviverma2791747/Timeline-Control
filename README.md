@@ -5,6 +5,9 @@ A video Timeline control for C# windows form</br>
 
 Features</br>
 
+Seek</br>
+1.Move Seek : Not Implemented West to East and Vice Versa </br>
+
 Track</br>
 1.Add Tracks : Implemented</br>
 2.Resize Tracks : Implemented </br>
